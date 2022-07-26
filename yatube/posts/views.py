@@ -14,12 +14,12 @@ User = get_user_model()
 
 # Главная страница
 def index(request):
-    post_list = Post.objects.all().order_by('-pub_date')
+    posts = Post.objects.all()
     # Если порядок сортировки определен в классе Meta модели,
     # запрос будет выглядить так:
     # post_list = Post.objects.all()
     # Показывать по 10 записей на странице.
-    paginator = Paginator(post_list, LIMIT_POSTS)
+    paginator = Paginator(posts, LIMIT_POSTS)
     # Из URL извлекаем номер запрошенной страницы - это значение параметра page
     page_number = request.GET.get('page')
     # Получаем набор записей для страницы с запрошенным номером
@@ -33,8 +33,8 @@ def index(request):
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
-    post_list = Post.objects.all().filter(group=group).order_by('-pub_date')
-    paginator = Paginator(post_list, LIMIT_POSTS)
+    posts = group.posts.all()
+    paginator = Paginator(posts, LIMIT_POSTS)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {
@@ -46,8 +46,8 @@ def group_posts(request, slug):
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
-    post_list = author.posts.select_related('author').order_by('-pub_date')
-    paginator = Paginator(post_list, LIMIT_POSTS)
+    posts = author.posts.all()
+    paginator = Paginator(posts, LIMIT_POSTS)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {
@@ -62,7 +62,7 @@ def post_detail(request, post_id):
     context = {
         'post': post
     }
-    return render(request, 'posts/post_detail.html', context)
+    return render(request, 'includes/post_detail.html', context)
 
 
 @login_required

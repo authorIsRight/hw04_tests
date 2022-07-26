@@ -1,3 +1,6 @@
+# added HTTPStatus
+from http import HTTPStatus
+
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 
@@ -39,7 +42,7 @@ class PostURLTests(TestCase):
             '/': 'posts/index.html',
             f'/group/{self.group.slug}/': 'posts/group_list.html',
             f'/profile/{self.post.author}/': 'posts/profile.html',
-            f'/posts/{self.post.pk}/': 'posts/post_detail.html',
+            f'/posts/{self.post.pk}/': 'includes/post_detail.html',
             f'/posts/{self.post.pk}/edit/': 'posts/create_post.html',
             '/create/': 'posts/create_post.html',
         }
@@ -51,13 +54,13 @@ class PostURLTests(TestCase):
     def test_url_for_guest(self):
         """URL-адрес не доступен гостю."""
         templates_url_names = {
-            '/': 200,
-            f'/group/{self.group.slug}/': 200,
-            f'/profile/{self.post.author}/': 200,
-            f'/posts/{self.post.pk}/': 200,
-            f'/posts/{self.post.pk}/edit/': 302,
-            '/create/': 302,
-            'unexist.html': 404,
+            '/': HTTPStatus.OK,
+            f'/group/{self.group.slug}/': HTTPStatus.OK,
+            f'/profile/{self.post.author}/': HTTPStatus.OK,
+            f'/posts/{self.post.pk}/': HTTPStatus.OK,
+            f'/posts/{self.post.pk}/edit/': HTTPStatus.FOUND,
+            '/create/': HTTPStatus.FOUND,
+            'unexist.html': HTTPStatus.NOT_FOUND,
         }
         for template, status in templates_url_names.items():
             with self.subTest(status=status):
@@ -68,12 +71,12 @@ class PostURLTests(TestCase):
         """URL-адрес для зарегистрированного юзера и не автора."""
         templates_url_names = {
             '/': 200,
-            f'/group/{self.group.slug}/': 200,
-            f'/profile/{self.post.author}/': 200,
-            f'/posts/{self.post.pk}/': 200,
-            f'/posts/{self.post.pk}/edit/': 302,
-            '/create/': 200,
-            'unexist.html': 404,
+            f'/group/{self.group.slug}/': HTTPStatus.OK,
+            f'/profile/{self.post.author}/': HTTPStatus.OK,
+            f'/posts/{self.post.pk}/': HTTPStatus.OK,
+            f'/posts/{self.post.pk}/edit/': HTTPStatus.FOUND,
+            '/create/': HTTPStatus.OK,
+            'unexist.html': HTTPStatus.NOT_FOUND,
         }
         for template, status in templates_url_names.items():
             with self.subTest(status=status):
@@ -83,13 +86,13 @@ class PostURLTests(TestCase):
     def test_url_auth(self):
         """Для автора поста почти все доступно."""
         templates_url_names = {
-            '/': 200,
-            f'/group/{self.group.slug}/': 200,
-            f'/profile/{self.post.author}/': 200,
-            f'/posts/{self.post.pk}/': 200,
-            f'/posts/{self.post.pk}/edit/': 200,
-            '/create/': 200,
-            'unexist.html': 404,
+            '/': HTTPStatus.OK,
+            f'/group/{self.group.slug}/': HTTPStatus.OK,
+            f'/profile/{self.post.author}/': HTTPStatus.OK,
+            f'/posts/{self.post.pk}/': HTTPStatus.OK,
+            f'/posts/{self.post.pk}/edit/': HTTPStatus.OK,
+            '/create/': HTTPStatus.OK,
+            'unexist.html': HTTPStatus.NOT_FOUND,
         }
         for template, status in templates_url_names.items():
             with self.subTest(status=status):

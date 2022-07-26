@@ -11,14 +11,14 @@
         {{ group.description }}
       </p>
 {% for post in page_obj %}
-{% include 'posts/includes/posts_details.html' %}
+{% include 'includes/posts_details.html' %}
 {% endfor %}
   </div>        
   <hr>
 
 <div class="d-flex justify-content-center">
   <div>
-    {% include 'posts/includes/paginator.html' %} 
+    {% include 'includes/paginator.html' %} 
   </div>
 </div>
 {% endblock %}

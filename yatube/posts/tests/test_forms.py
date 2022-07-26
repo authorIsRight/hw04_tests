@@ -71,4 +71,5 @@ class PostCreateFormTests(TestCase):
             group=form_data['group']
         )
         self.assertEqual(post.text, form_data['text'])
-        self.assertEqual(post.group.title, self.group.title)
+        self.assertEqual(post.author, self.user)
+        self.assertEqual(post.group_id, form_data['group'])
