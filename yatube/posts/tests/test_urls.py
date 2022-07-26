@@ -70,7 +70,7 @@ class PostURLTests(TestCase):
     def test_url_for_user(self):
         """URL-адрес для зарегистрированного юзера и не автора."""
         templates_url_names = {
-            '/': 200,
+            '/': HTTPStatus.OK,
             f'/group/{self.group.slug}/': HTTPStatus.OK,
             f'/profile/{self.post.author}/': HTTPStatus.OK,
             f'/posts/{self.post.pk}/': HTTPStatus.OK,
