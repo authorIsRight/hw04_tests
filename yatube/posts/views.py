@@ -3,9 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib.auth import get_user_model
 from django.shortcuts import redirect
+from django.views.decorators.cache import cache_page
 
-from .forms import PostForm
-from .models import Group, Post
+from .forms import PostForm, CommentForm
+from .models import Group, Post, Comment
 
 LIMIT_POSTS: int = 10
 
@@ -13,6 +14,7 @@ User = get_user_model()
 
 
 # Главная страница
+@cache_page(20, key_prefix="index_page")
 def index(request):
     posts = Post.objects.all()
     # Если порядок сортировки определен в классе Meta модели,
@@ -59,8 +61,13 @@ def profile(request, username):
 
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
+    form = CommentForm()
+    comments = post.comments.all()
     context = {
-        'post': post
+        'post': post,
+        'comments': comments,
+        'form': form
+        # delete or include?
     }
     return render(request, 'includes/post_detail.html', context)
 
@@ -72,7 +79,10 @@ def post_create(request):
         form = PostForm()
         context = {'form': form}
         return render(request, template, context)
-    form = PostForm(request.POST or None)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None,
+    )
     context = {'form': form}
     if form.is_valid():
         create_post = form.save(commit=False)
@@ -85,16 +95,30 @@ def post_create(request):
 @login_required
 def post_edit(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    form = PostForm(request.POST or None, instance=post)
-    if request.user != post.author:
-        return redirect('posts:post_detail', post_id)
+    if post.author != request.user:
+        return redirect('posts:post_detail', post_id=post_id)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None,
+        instance=post
+    )
     if form.is_valid():
-        template = 'posts:post_detail'
         form.save()
-        return redirect(template, post_id=post.pk)
-    template = 'posts/create_post.html'
+        return redirect('posts:post_detail', post_id=post_id)
     context = {
+        'post': post,
         'form': form,
-        'is_edit': True
+        'is_edit': True,
     }
-    return render(request, template, context)
+    return render(request, 'posts/create_post.html', context)
+
+@login_required
+def add_comment(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    form = CommentForm(request.POST or None)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post = post
+        comment.save()
+    return redirect('posts:post_detail', post_id=post_id)

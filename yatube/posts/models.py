@@ -16,6 +16,10 @@ class Group(models.Model):
 class Post(models.Model):
     class Meta:
         ordering = ['-pub_date']
+        # added in 6 sprint (hope this will not ruin all)
+        verbose_name = 'Пост'
+        verbose_name_plural = 'Посты'
+
     text = models.TextField(
         'Текст поста',
         help_text='Введите текст поста'
@@ -40,6 +44,12 @@ class Post(models.Model):
         help_text='Группа, к которой будет относиться пост'
     )
 
+    image = models.ImageField(
+        'Картинка',
+        upload_to='posts/',
+        blank=True
+    )
+
     def corrected_text(self):
         if not self.text:
             return "-пусто"
@@ -49,4 +59,33 @@ class Post(models.Model):
 
     def __str__(self):
         # выводим текст поста
+        return self.text[:15]
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Пост'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Автор'
+    )
+    text = models.TextField(
+        verbose_name='Коммент'
+    )
+    created = models.DateTimeField(
+        'Создан',
+        auto_now_add=True
+    )
+
+    class Meta:
+        ordering = ['-created']
+
+    def __str__(self):
+        # выводим текст коммента
         return self.text[:15]
